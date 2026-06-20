@@ -1,0 +1,32 @@
+Makefile
+  s_939b5ef91c5467::t_63f8277eee85b9 1-13
+scripts/pull-btree.sh
+  s_939b5ef91c5467::t_681b230f3cadf2 1-39
+.gitignore
+  h_4cc74772b10fd4 1-2
+README.md
+  s_939b5ef91c5467::t_d89d7bcb45f0a0 1-11
+AGENTS.md
+  s_939b5ef91c5467::t_9430186f65355c 1-10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.9",
+  "base_commit_sha": "7ba19dc771e73e1a2e135f3a15757e7fa6b0a074",
+  "prompts": {},
+  "humans": {
+    "h_4cc74772b10fd4": {
+      "author": "dsillman2000 <dsillman2000@yahoo.com>"
+    }
+  },
+  "sessions": {
+    "s_939b5ef91c5467": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_11891e267ffebrGFulc9m8nnjn",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "dsillman2000 <dsillman2000@yahoo.com>"
+    }
+  }
+}
