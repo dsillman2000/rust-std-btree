@@ -5,7 +5,7 @@ use core::{hint, ptr};
 use super::node::ForceResult::*;
 use super::node::{Handle, NodeRef, marker};
 use super::search::SearchBound;
-use crate::alloc::Allocator;
+use core::alloc::Allocator;
 // `front` and `back` are always both `None` or both `Some`.
 pub(super) struct LeafRange<BorrowType, K, V> {
     front: Option<Handle<NodeRef<BorrowType, K, V, marker::Leaf>, marker::Edge>>,
@@ -264,13 +264,14 @@ impl<BorrowType: marker::BorrowType, K, V> NodeRef<BorrowType, K, V, marker::Lea
     unsafe fn find_leaf_edges_spanning_range<Q: ?Sized, R>(
         self,
         range: R,
+        is_set: bool,
     ) -> LeafRange<BorrowType, K, V>
     where
         Q: Ord,
         K: Borrow<Q>,
         R: RangeBounds<Q>,
     {
-        match self.search_tree_for_bifurcation(&range) {
+        match self.search_tree_for_bifurcation(&range, is_set) {
             Err(_) => LeafRange::none(),
             Ok((
                 node,
@@ -313,14 +314,14 @@ impl<'a, K: 'a, V: 'a> NodeRef<marker::Immut<'a>, K, V, marker::LeafOrInternal> 
     ///
     /// The result is meaningful only if the tree is ordered by key, like the tree
     /// in a `BTreeMap` is.
-    pub(super) fn range_search<Q, R>(self, range: R) -> LeafRange<marker::Immut<'a>, K, V>
+    pub(super) fn range_search<Q, R>(self, range: R, is_set: bool) -> LeafRange<marker::Immut<'a>, K, V>
     where
         Q: ?Sized + Ord,
         K: Borrow<Q>,
         R: RangeBounds<Q>,
     {
         // SAFETY: our borrow type is immutable.
-        unsafe { self.find_leaf_edges_spanning_range(range) }
+        unsafe { self.find_leaf_edges_spanning_range(range, is_set) }
     }
 
     /// Finds the pair of leaf edges delimiting an entire tree.
@@ -339,13 +340,13 @@ impl<'a, K: 'a, V: 'a> NodeRef<marker::ValMut<'a>, K, V, marker::LeafOrInternal>
     ///
     /// # Safety
     /// Do not use the duplicate handles to visit the same KV twice.
-    pub(super) fn range_search<Q, R>(self, range: R) -> LeafRange<marker::ValMut<'a>, K, V>
+    pub(super) fn range_search<Q, R>(self, range: R, is_set: bool) -> LeafRange<marker::ValMut<'a>, K, V>
     where
         Q: ?Sized + Ord,
         K: Borrow<Q>,
         R: RangeBounds<Q>,
     {
-        unsafe { self.find_leaf_edges_spanning_range(range) }
+        unsafe { self.find_leaf_edges_spanning_range(range, is_set) }
     }
 
     /// Splits a unique reference into a pair of leaf edges delimiting the full range of the tree.

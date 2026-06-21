@@ -17,13 +17,13 @@ use super::node::{self, Handle, NodeRef, Root, marker};
 use super::search::SearchBound;
 use super::search::SearchResult::*;
 use super::set_val::SetValZST;
-use crate::alloc::{Allocator, Global};
-use crate::vec::Vec;
+use core::alloc::Allocator;
+use std::alloc::Global;
+use std::vec::Vec;
 
 mod entry;
 
 use Entry::*;
-#[stable(feature = "rust1", since = "1.0.0")]
 pub use entry::{Entry, OccupiedEntry, OccupiedError, VacantEntry};
 
 /// Minimum number of elements in a node that is not a root.
@@ -183,13 +183,10 @@ pub(super) const MIN_LEN: usize = node::MIN_LEN_AFTER_SPLIT;
 /// [total order]: https://en.wikipedia.org/wiki/Total_order
 /// [`Cell`]: core::cell::Cell
 /// [`RefCell`]: core::cell::RefCell
-#[stable(feature = "rust1", since = "1.0.0")]
-#[cfg_attr(not(test), rustc_diagnostic_item = "BTreeMap")]
-#[rustc_insignificant_dtor]
 pub struct BTreeMap<
     K,
     V,
-    #[unstable(feature = "allocator_api", issue = "32838")] A: Allocator + Clone = Global,
+     A: Allocator + Clone = Global,
 > {
     root: Option<Root<K, V>>,
     length: usize,
@@ -199,10 +196,9 @@ pub struct BTreeMap<
     // is live, it's unnecessary to store the allocator in each node.
     pub(super) alloc: ManuallyDrop<A>,
     // For dropck; the `Box` avoids making the `Unpin` impl more strict than before
-    _marker: PhantomData<crate::boxed::Box<(K, V), A>>,
+    _marker: PhantomData<std::boxed::Box<(K, V), A>>,
 }
 
-#[stable(feature = "btree_drop", since = "1.7.0")]
 unsafe impl<#[may_dangle] K, #[may_dangle] V, A: Allocator + Clone> Drop for BTreeMap<K, V, A> {
     fn drop(&mut self) {
         drop(unsafe { ptr::read(self) }.into_iter())
@@ -213,7 +209,6 @@ unsafe impl<#[may_dangle] K, #[may_dangle] V, A: Allocator + Clone> Drop for BTr
 // (The bounds of the automatic `UnwindSafe` implementation have been like this since Rust 1.50.)
 // Maybe we can fix it nonetheless with a crater run, or if the `UnwindSafe`
 // traits are deprecated, or disarmed (no longer causing hard errors) in the future.
-#[stable(feature = "btree_unwindsafe", since = "1.64.0")]
 impl<K, V, A: Allocator + Clone> core::panic::UnwindSafe for BTreeMap<K, V, A>
 where
     A: core::panic::UnwindSafe,
@@ -222,7 +217,6 @@ where
 {
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<K: Clone, V: Clone, A: Allocator + Clone> Clone for BTreeMap<K, V, A> {
     fn clone(&self) -> BTreeMap<K, V, A> {
         fn clone_subtree<'a, K: Clone, V: Clone, A: Allocator + Clone>(
@@ -368,20 +362,17 @@ impl<K, A: Allocator + Clone> BTreeMap<K, SetValZST, A> {
 ///
 /// [`iter`]: BTreeMap::iter
 #[must_use = "iterators are lazy and do nothing unless consumed"]
-#[stable(feature = "rust1", since = "1.0.0")]
 pub struct Iter<'a, K: 'a, V: 'a> {
     range: LazyLeafRange<marker::Immut<'a>, K, V>,
     length: usize,
 }
 
-#[stable(feature = "collection_debug", since = "1.17.0")]
 impl<K: fmt::Debug, V: fmt::Debug> fmt::Debug for Iter<'_, K, V> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_list().entries(self.clone()).finish()
     }
 }
 
-#[stable(feature = "default_iters", since = "1.70.0")]
 impl<'a, K: 'a, V: 'a> Default for Iter<'a, K, V> {
     /// Creates an empty `btree_map::Iter`.
     ///
@@ -402,7 +393,6 @@ impl<'a, K: 'a, V: 'a> Default for Iter<'a, K, V> {
 ///
 /// [`iter_mut`]: BTreeMap::iter_mut
 #[must_use = "iterators are lazy and do nothing unless consumed"]
-#[stable(feature = "rust1", since = "1.0.0")]
 pub struct IterMut<'a, K: 'a, V: 'a> {
     range: LazyLeafRange<marker::ValMut<'a>, K, V>,
     length: usize,
@@ -411,7 +401,6 @@ pub struct IterMut<'a, K: 'a, V: 'a> {
     _marker: PhantomData<&'a mut (K, V)>,
 }
 
-#[stable(feature = "collection_debug", since = "1.17.0")]
 impl<K: fmt::Debug, V: fmt::Debug> fmt::Debug for IterMut<'_, K, V> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let range = Iter { range: self.range.reborrow(), length: self.length };
@@ -419,7 +408,6 @@ impl<K: fmt::Debug, V: fmt::Debug> fmt::Debug for IterMut<'_, K, V> {
     }
 }
 
-#[stable(feature = "default_iters", since = "1.70.0")]
 impl<'a, K: 'a, V: 'a> Default for IterMut<'a, K, V> {
     /// Creates an empty `btree_map::IterMut`.
     ///
@@ -439,12 +427,10 @@ impl<'a, K: 'a, V: 'a> Default for IterMut<'a, K, V> {
 /// (provided by the [`IntoIterator`] trait). See its documentation for more.
 ///
 /// [`into_iter`]: IntoIterator::into_iter
-#[stable(feature = "rust1", since = "1.0.0")]
-#[rustc_insignificant_dtor]
 pub struct IntoIter<
     K,
     V,
-    #[unstable(feature = "allocator_api", issue = "32838")] A: Allocator + Clone = Global,
+     A: Allocator + Clone = Global,
 > {
     range: LazyLeafRange<marker::Dying, K, V>,
     length: usize,
@@ -460,14 +446,12 @@ impl<K, V, A: Allocator + Clone> IntoIter<K, V, A> {
     }
 }
 
-#[stable(feature = "collection_debug", since = "1.17.0")]
 impl<K: Debug, V: Debug, A: Allocator + Clone> Debug for IntoIter<K, V, A> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_list().entries(self.iter()).finish()
     }
 }
 
-#[stable(feature = "default_iters", since = "1.70.0")]
 impl<K, V, A> Default for IntoIter<K, V, A>
 where
     A: Allocator + Default + Clone,
@@ -491,12 +475,10 @@ where
 ///
 /// [`keys`]: BTreeMap::keys
 #[must_use = "iterators are lazy and do nothing unless consumed"]
-#[stable(feature = "rust1", since = "1.0.0")]
 pub struct Keys<'a, K, V> {
     inner: Iter<'a, K, V>,
 }
 
-#[stable(feature = "collection_debug", since = "1.17.0")]
 impl<K: fmt::Debug, V> fmt::Debug for Keys<'_, K, V> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_list().entries(self.clone()).finish()
@@ -510,12 +492,10 @@ impl<K: fmt::Debug, V> fmt::Debug for Keys<'_, K, V> {
 ///
 /// [`values`]: BTreeMap::values
 #[must_use = "iterators are lazy and do nothing unless consumed"]
-#[stable(feature = "rust1", since = "1.0.0")]
 pub struct Values<'a, K, V> {
     inner: Iter<'a, K, V>,
 }
 
-#[stable(feature = "collection_debug", since = "1.17.0")]
 impl<K, V: fmt::Debug> fmt::Debug for Values<'_, K, V> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_list().entries(self.clone()).finish()
@@ -529,12 +509,10 @@ impl<K, V: fmt::Debug> fmt::Debug for Values<'_, K, V> {
 ///
 /// [`values_mut`]: BTreeMap::values_mut
 #[must_use = "iterators are lazy and do nothing unless consumed"]
-#[stable(feature = "map_values_mut", since = "1.10.0")]
 pub struct ValuesMut<'a, K, V> {
     inner: IterMut<'a, K, V>,
 }
 
-#[stable(feature = "map_values_mut", since = "1.10.0")]
 impl<K, V: fmt::Debug> fmt::Debug for ValuesMut<'_, K, V> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_list().entries(self.inner.iter().map(|(_, val)| val)).finish()
@@ -548,16 +526,14 @@ impl<K, V: fmt::Debug> fmt::Debug for ValuesMut<'_, K, V> {
 ///
 /// [`into_keys`]: BTreeMap::into_keys
 #[must_use = "iterators are lazy and do nothing unless consumed"]
-#[stable(feature = "map_into_keys_values", since = "1.54.0")]
 pub struct IntoKeys<
     K,
     V,
-    #[unstable(feature = "allocator_api", issue = "32838")] A: Allocator + Clone = Global,
+     A: Allocator + Clone = Global,
 > {
     inner: IntoIter<K, V, A>,
 }
 
-#[stable(feature = "map_into_keys_values", since = "1.54.0")]
 impl<K: fmt::Debug, V, A: Allocator + Clone> fmt::Debug for IntoKeys<K, V, A> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_list().entries(self.inner.iter().map(|(key, _)| key)).finish()
@@ -571,16 +547,14 @@ impl<K: fmt::Debug, V, A: Allocator + Clone> fmt::Debug for IntoKeys<K, V, A> {
 ///
 /// [`into_values`]: BTreeMap::into_values
 #[must_use = "iterators are lazy and do nothing unless consumed"]
-#[stable(feature = "map_into_keys_values", since = "1.54.0")]
 pub struct IntoValues<
     K,
     V,
-    #[unstable(feature = "allocator_api", issue = "32838")] A: Allocator + Clone = Global,
+     A: Allocator + Clone = Global,
 > {
     inner: IntoIter<K, V, A>,
 }
 
-#[stable(feature = "map_into_keys_values", since = "1.54.0")]
 impl<K, V: fmt::Debug, A: Allocator + Clone> fmt::Debug for IntoValues<K, V, A> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_list().entries(self.inner.iter().map(|(_, val)| val)).finish()
@@ -594,12 +568,10 @@ impl<K, V: fmt::Debug, A: Allocator + Clone> fmt::Debug for IntoValues<K, V, A> 
 ///
 /// [`range`]: BTreeMap::range
 #[must_use = "iterators are lazy and do nothing unless consumed"]
-#[stable(feature = "btree_range", since = "1.17.0")]
 pub struct Range<'a, K: 'a, V: 'a> {
-    inner: LeafRange<marker::Immut<'a>, K, V>,
+    pub(super) inner: LeafRange<marker::Immut<'a>, K, V>,
 }
 
-#[stable(feature = "collection_debug", since = "1.17.0")]
 impl<K: fmt::Debug, V: fmt::Debug> fmt::Debug for Range<'_, K, V> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_list().entries(self.clone()).finish()
@@ -613,7 +585,6 @@ impl<K: fmt::Debug, V: fmt::Debug> fmt::Debug for Range<'_, K, V> {
 ///
 /// [`range_mut`]: BTreeMap::range_mut
 #[must_use = "iterators are lazy and do nothing unless consumed"]
-#[stable(feature = "btree_range", since = "1.17.0")]
 pub struct RangeMut<'a, K: 'a, V: 'a> {
     inner: LeafRange<marker::ValMut<'a>, K, V>,
 
@@ -621,7 +592,6 @@ pub struct RangeMut<'a, K: 'a, V: 'a> {
     _marker: PhantomData<&'a mut (K, V)>,
 }
 
-#[stable(feature = "collection_debug", since = "1.17.0")]
 impl<K: fmt::Debug, V: fmt::Debug> fmt::Debug for RangeMut<'_, K, V> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let range = Range { inner: self.inner.reborrow() };
@@ -644,8 +614,7 @@ impl<K, V> BTreeMap<K, V> {
     /// // entries can now be inserted into the empty map
     /// map.insert(1, "a");
     /// ```
-    #[stable(feature = "rust1", since = "1.0.0")]
-    #[rustc_const_stable(feature = "const_btree_new", since = "1.66.0")]
+    
     #[inline]
     #[must_use]
     pub const fn new() -> BTreeMap<K, V> {
@@ -666,7 +635,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// a.clear();
     /// assert!(a.is_empty());
     /// ```
-    #[stable(feature = "rust1", since = "1.0.0")]
+    
     pub fn clear(&mut self) {
         // avoid moving the allocator
         drop(BTreeMap {
@@ -692,7 +661,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// // entries can now be inserted into the empty map
     /// map.insert(1, "a");
     /// ```
-    #[unstable(feature = "btreemap_alloc", issue = "32838")]
+    
     pub const fn new_in(alloc: A) -> BTreeMap<K, V, A> {
         BTreeMap { root: None, length: 0, alloc: ManuallyDrop::new(alloc), _marker: PhantomData }
     }
@@ -714,7 +683,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// assert_eq!(map.get(&1), Some(&"a"));
     /// assert_eq!(map.get(&2), None);
     /// ```
-    #[stable(feature = "rust1", since = "1.0.0")]
+    
     pub fn get<Q: ?Sized>(&self, key: &Q) -> Option<&V>
     where
         K: Borrow<Q> + Ord,
@@ -780,7 +749,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// assert_eq!(map.get_key_value(&j_b), Some((&j_a, &"Paris"))); // the notable case
     /// assert_eq!(map.get_key_value(&p), None);
     /// ```
-    #[stable(feature = "map_get_key_value", since = "1.40.0")]
+    
     pub fn get_key_value<Q: ?Sized>(&self, k: &Q) -> Option<(&K, &V)>
     where
         K: Borrow<Q> + Ord,
@@ -807,7 +776,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// map.insert(2, "a");
     /// assert_eq!(map.first_key_value(), Some((&1, &"b")));
     /// ```
-    #[stable(feature = "map_first_last", since = "1.66.0")]
+    
     pub fn first_key_value(&self) -> Option<(&K, &V)>
     where
         K: Ord,
@@ -835,7 +804,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// assert_eq!(*map.get(&1).unwrap(), "first");
     /// assert_eq!(*map.get(&2).unwrap(), "b");
     /// ```
-    #[stable(feature = "map_first_last", since = "1.66.0")]
+    
     pub fn first_entry(&mut self) -> Option<OccupiedEntry<'_, K, V, A>>
     where
         K: Ord,
@@ -869,7 +838,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// }
     /// assert!(map.is_empty());
     /// ```
-    #[stable(feature = "map_first_last", since = "1.66.0")]
+    
     pub fn pop_first(&mut self) -> Option<(K, V)>
     where
         K: Ord,
@@ -890,7 +859,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// map.insert(2, "a");
     /// assert_eq!(map.last_key_value(), Some((&2, &"a")));
     /// ```
-    #[stable(feature = "map_first_last", since = "1.66.0")]
+    
     pub fn last_key_value(&self) -> Option<(&K, &V)>
     where
         K: Ord,
@@ -918,7 +887,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// assert_eq!(*map.get(&1).unwrap(), "a");
     /// assert_eq!(*map.get(&2).unwrap(), "last");
     /// ```
-    #[stable(feature = "map_first_last", since = "1.66.0")]
+    
     pub fn last_entry(&mut self) -> Option<OccupiedEntry<'_, K, V, A>>
     where
         K: Ord,
@@ -952,7 +921,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// }
     /// assert!(map.is_empty());
     /// ```
-    #[stable(feature = "map_first_last", since = "1.66.0")]
+    
     pub fn pop_last(&mut self) -> Option<(K, V)>
     where
         K: Ord,
@@ -975,8 +944,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// assert_eq!(map.contains_key(&1), true);
     /// assert_eq!(map.contains_key(&2), false);
     /// ```
-    #[stable(feature = "rust1", since = "1.0.0")]
-    #[cfg_attr(not(test), rustc_diagnostic_item = "btreemap_contains_key")]
+    
     pub fn contains_key<Q: ?Sized>(&self, key: &Q) -> bool
     where
         K: Borrow<Q> + Ord,
@@ -1002,8 +970,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// }
     /// assert_eq!(map[&1], "b");
     /// ```
-    // See `get` for implementation notes, this is basically a copy-paste with mut's added
-    #[stable(feature = "rust1", since = "1.0.0")]
+    
     pub fn get_mut<Q: ?Sized>(&mut self, key: &Q) -> Option<&mut V>
     where
         K: Borrow<Q> + Ord,
@@ -1040,9 +1007,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// assert_eq!(map.insert(37, "c"), Some("b"));
     /// assert_eq!(map[&37], "c");
     /// ```
-    #[stable(feature = "rust1", since = "1.0.0")]
-    #[rustc_confusables("push", "put", "set")]
-    #[cfg_attr(not(test), rustc_diagnostic_item = "btreemap_insert")]
+    
     pub fn insert(&mut self, key: K, value: V) -> Option<V>
     where
         K: Ord,
@@ -1065,8 +1030,6 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// # Examples
     ///
     /// ```
-    /// #![feature(map_try_insert)]
-    ///
     /// use std::collections::BTreeMap;
     ///
     /// let mut map = BTreeMap::new();
@@ -1077,7 +1040,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// assert_eq!(err.entry.get(), &"a");
     /// assert_eq!(err.value, "b");
     /// ```
-    #[unstable(feature = "map_try_insert", issue = "82766")]
+    
     pub fn try_insert(&mut self, key: K, value: V) -> Result<&mut V, OccupiedError<'_, K, V, A>>
     where
         K: Ord,
@@ -1104,8 +1067,8 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// assert_eq!(map.remove(&1), Some("a"));
     /// assert_eq!(map.remove(&1), None);
     /// ```
-    #[stable(feature = "rust1", since = "1.0.0")]
-    #[rustc_confusables("delete", "take")]
+    
+    
     pub fn remove<Q: ?Sized>(&mut self, key: &Q) -> Option<V>
     where
         K: Borrow<Q> + Ord,
@@ -1130,7 +1093,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// assert_eq!(map.remove_entry(&1), Some((1, "a")));
     /// assert_eq!(map.remove_entry(&1), None);
     /// ```
-    #[stable(feature = "btreemap_remove_entry", since = "1.45.0")]
+    
     pub fn remove_entry<Q: ?Sized>(&mut self, key: &Q) -> Option<(K, V)>
     where
         K: Borrow<Q> + Ord,
@@ -1168,7 +1131,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// assert!(map.into_iter().eq(vec![(0, 0), (2, 20), (4, 40), (6, 60)]));
     /// ```
     #[inline]
-    #[stable(feature = "btree_retain", since = "1.53.0")]
+    
     pub fn retain<F>(&mut self, mut f: F)
     where
         K: Ord,
@@ -1208,7 +1171,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// assert_eq!(a[&4], "e");
     /// assert_eq!(a[&5], "f");
     /// ```
-    #[stable(feature = "btree_append", since = "1.11.0")]
+    
     pub fn append(&mut self, other: &mut Self)
     where
         K: Ord,
@@ -1263,7 +1226,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// }
     /// assert_eq!(Some((&5, &"b")), map.range(4..).next());
     /// ```
-    #[stable(feature = "btree_range", since = "1.17.0")]
+    
     pub fn range<T: ?Sized, R>(&self, range: R) -> Range<'_, K, V>
     where
         T: Ord,
@@ -1271,7 +1234,20 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
         R: RangeBounds<T>,
     {
         if let Some(root) = &self.root {
-            Range { inner: root.reborrow().range_search(range) }
+            Range { inner: root.reborrow().range_search(range, false) }
+        } else {
+            Range { inner: LeafRange::none() }
+        }
+    }
+
+    pub(super) fn range_raw<Q: ?Sized, R>(&self, range: R, is_set: bool) -> Range<'_, K, V>
+    where
+        Q: Ord,
+        K: Borrow<Q> + Ord,
+        R: RangeBounds<Q>,
+    {
+        if let Some(root) = &self.root {
+            Range { inner: root.reborrow().range_search(range, is_set) }
         } else {
             Range { inner: LeafRange::none() }
         }
@@ -1303,7 +1279,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     ///     println!("{name} => {balance}");
     /// }
     /// ```
-    #[stable(feature = "btree_range", since = "1.17.0")]
+    
     pub fn range_mut<T: ?Sized, R>(&mut self, range: R) -> RangeMut<'_, K, V>
     where
         T: Ord,
@@ -1311,7 +1287,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
         R: RangeBounds<T>,
     {
         if let Some(root) = &mut self.root {
-            RangeMut { inner: root.borrow_valmut().range_search(range), _marker: PhantomData }
+            RangeMut { inner: root.borrow_valmut().range_search(range, false), _marker: PhantomData }
         } else {
             RangeMut { inner: LeafRange::none(), _marker: PhantomData }
         }
@@ -1335,7 +1311,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// assert_eq!(count["b"], 2);
     /// assert_eq!(count["c"], 1);
     /// ```
-    #[stable(feature = "rust1", since = "1.0.0")]
+    
     pub fn entry(&mut self, key: K) -> Entry<'_, K, V, A>
     where
         K: Ord,
@@ -1395,7 +1371,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// assert_eq!(b[&17], "d");
     /// assert_eq!(b[&41], "e");
     /// ```
-    #[stable(feature = "btree_split_off", since = "1.11.0")]
+    
     pub fn split_off<Q: ?Sized + Ord>(&mut self, key: &Q) -> Self
     where
         K: Borrow<Q> + Ord,
@@ -1457,7 +1433,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// assert_eq!(low.keys().copied().collect::<Vec<_>>(), [0, 1, 2, 3]);
     /// assert_eq!(high.keys().copied().collect::<Vec<_>>(), [4, 5, 6, 7]);
     /// ```
-    #[stable(feature = "btree_extract_if", since = "1.91.0")]
+    
     pub fn extract_if<F, R>(&mut self, range: R, pred: F) -> ExtractIf<'_, K, V, R, F, A>
     where
         K: Ord,
@@ -1515,7 +1491,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// assert_eq!(keys, [1, 2]);
     /// ```
     #[inline]
-    #[stable(feature = "map_into_keys_values", since = "1.54.0")]
+    
     pub fn into_keys(self) -> IntoKeys<K, V, A> {
         IntoKeys { inner: self.into_iter() }
     }
@@ -1537,7 +1513,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// assert_eq!(values, ["hello", "goodbye"]);
     /// ```
     #[inline]
-    #[stable(feature = "map_into_keys_values", since = "1.54.0")]
+    
     pub fn into_values(self) -> IntoValues<K, V, A> {
         IntoValues { inner: self.into_iter() }
     }
@@ -1555,7 +1531,6 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<'a, K, V, A: Allocator + Clone> IntoIterator for &'a BTreeMap<K, V, A> {
     type Item = (&'a K, &'a V);
     type IntoIter = Iter<'a, K, V>;
@@ -1565,7 +1540,6 @@ impl<'a, K, V, A: Allocator + Clone> IntoIterator for &'a BTreeMap<K, V, A> {
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<'a, K: 'a, V: 'a> Iterator for Iter<'a, K, V> {
     type Item = (&'a K, &'a V);
 
@@ -1601,10 +1575,8 @@ impl<'a, K: 'a, V: 'a> Iterator for Iter<'a, K, V> {
     }
 }
 
-#[stable(feature = "fused", since = "1.26.0")]
 impl<K, V> FusedIterator for Iter<'_, K, V> {}
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<'a, K: 'a, V: 'a> DoubleEndedIterator for Iter<'a, K, V> {
     fn next_back(&mut self) -> Option<(&'a K, &'a V)> {
         if self.length == 0 {
@@ -1616,21 +1588,18 @@ impl<'a, K: 'a, V: 'a> DoubleEndedIterator for Iter<'a, K, V> {
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<K, V> ExactSizeIterator for Iter<'_, K, V> {
     fn len(&self) -> usize {
         self.length
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<K, V> Clone for Iter<'_, K, V> {
     fn clone(&self) -> Self {
         Iter { range: self.range.clone(), length: self.length }
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<'a, K, V, A: Allocator + Clone> IntoIterator for &'a mut BTreeMap<K, V, A> {
     type Item = (&'a K, &'a mut V);
     type IntoIter = IterMut<'a, K, V>;
@@ -1640,7 +1609,6 @@ impl<'a, K, V, A: Allocator + Clone> IntoIterator for &'a mut BTreeMap<K, V, A> 
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<'a, K, V> Iterator for IterMut<'a, K, V> {
     type Item = (&'a K, &'a mut V);
 
@@ -1676,7 +1644,6 @@ impl<'a, K, V> Iterator for IterMut<'a, K, V> {
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<'a, K, V> DoubleEndedIterator for IterMut<'a, K, V> {
     fn next_back(&mut self) -> Option<(&'a K, &'a mut V)> {
         if self.length == 0 {
@@ -1688,14 +1655,12 @@ impl<'a, K, V> DoubleEndedIterator for IterMut<'a, K, V> {
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<K, V> ExactSizeIterator for IterMut<'_, K, V> {
     fn len(&self) -> usize {
         self.length
     }
 }
 
-#[stable(feature = "fused", since = "1.26.0")]
 impl<K, V> FusedIterator for IterMut<'_, K, V> {}
 
 impl<'a, K, V> IterMut<'a, K, V> {
@@ -1706,7 +1671,6 @@ impl<'a, K, V> IterMut<'a, K, V> {
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<K, V, A: Allocator + Clone> IntoIterator for BTreeMap<K, V, A> {
     type Item = (K, V);
     type IntoIter = IntoIter<K, V, A>;
@@ -1732,7 +1696,6 @@ impl<K, V, A: Allocator + Clone> IntoIterator for BTreeMap<K, V, A> {
     }
 }
 
-#[stable(feature = "btree_drop", since = "1.7.0")]
 impl<K, V, A: Allocator + Clone> Drop for IntoIter<K, V, A> {
     fn drop(&mut self) {
         struct DropGuard<'a, K, V, A: Allocator + Clone>(&'a mut IntoIter<K, V, A>);
@@ -1787,7 +1750,6 @@ impl<K, V, A: Allocator + Clone> IntoIter<K, V, A> {
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<K, V, A: Allocator + Clone> Iterator for IntoIter<K, V, A> {
     type Item = (K, V);
 
@@ -1801,7 +1763,6 @@ impl<K, V, A: Allocator + Clone> Iterator for IntoIter<K, V, A> {
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<K, V, A: Allocator + Clone> DoubleEndedIterator for IntoIter<K, V, A> {
     fn next_back(&mut self) -> Option<(K, V)> {
         // SAFETY: we consume the dying handle immediately.
@@ -1809,17 +1770,14 @@ impl<K, V, A: Allocator + Clone> DoubleEndedIterator for IntoIter<K, V, A> {
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<K, V, A: Allocator + Clone> ExactSizeIterator for IntoIter<K, V, A> {
     fn len(&self) -> usize {
         self.length
     }
 }
 
-#[stable(feature = "fused", since = "1.26.0")]
 impl<K, V, A: Allocator + Clone> FusedIterator for IntoIter<K, V, A> {}
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<'a, K, V> Iterator for Keys<'a, K, V> {
     type Item = &'a K;
 
@@ -1850,31 +1808,26 @@ impl<'a, K, V> Iterator for Keys<'a, K, V> {
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<'a, K, V> DoubleEndedIterator for Keys<'a, K, V> {
     fn next_back(&mut self) -> Option<&'a K> {
         self.inner.next_back().map(|(k, _)| k)
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<K, V> ExactSizeIterator for Keys<'_, K, V> {
     fn len(&self) -> usize {
         self.inner.len()
     }
 }
 
-#[stable(feature = "fused", since = "1.26.0")]
 impl<K, V> FusedIterator for Keys<'_, K, V> {}
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<K, V> Clone for Keys<'_, K, V> {
     fn clone(&self) -> Self {
         Keys { inner: self.inner.clone() }
     }
 }
 
-#[stable(feature = "default_iters", since = "1.70.0")]
 impl<K, V> Default for Keys<'_, K, V> {
     /// Creates an empty `btree_map::Keys`.
     ///
@@ -1888,7 +1841,6 @@ impl<K, V> Default for Keys<'_, K, V> {
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<'a, K, V> Iterator for Values<'a, K, V> {
     type Item = &'a V;
 
@@ -1905,31 +1857,26 @@ impl<'a, K, V> Iterator for Values<'a, K, V> {
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<'a, K, V> DoubleEndedIterator for Values<'a, K, V> {
     fn next_back(&mut self) -> Option<&'a V> {
         self.inner.next_back().map(|(_, v)| v)
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<K, V> ExactSizeIterator for Values<'_, K, V> {
     fn len(&self) -> usize {
         self.inner.len()
     }
 }
 
-#[stable(feature = "fused", since = "1.26.0")]
 impl<K, V> FusedIterator for Values<'_, K, V> {}
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<K, V> Clone for Values<'_, K, V> {
     fn clone(&self) -> Self {
         Values { inner: self.inner.clone() }
     }
 }
 
-#[stable(feature = "default_iters", since = "1.70.0")]
 impl<K, V> Default for Values<'_, K, V> {
     /// Creates an empty `btree_map::Values`.
     ///
@@ -1944,7 +1891,6 @@ impl<K, V> Default for Values<'_, K, V> {
 }
 
 /// An iterator produced by calling `extract_if` on BTreeMap.
-#[stable(feature = "btree_extract_if", since = "1.91.0")]
 #[must_use = "iterators are lazy and do nothing unless consumed"]
 pub struct ExtractIf<
     'a,
@@ -1952,7 +1898,7 @@ pub struct ExtractIf<
     V,
     R,
     F,
-    #[unstable(feature = "allocator_api", issue = "32838")] A: Allocator + Clone = Global,
+     A: Allocator + Clone = Global,
 > {
     pred: F,
     inner: ExtractIfInner<'a, K, V, R>,
@@ -1977,7 +1923,6 @@ pub(super) struct ExtractIfInner<'a, K, V, R> {
     range: R,
 }
 
-#[stable(feature = "btree_extract_if", since = "1.91.0")]
 impl<K, V, R, F, A> fmt::Debug for ExtractIf<'_, K, V, R, F, A>
 where
     K: fmt::Debug,
@@ -1989,7 +1934,6 @@ where
     }
 }
 
-#[stable(feature = "btree_extract_if", since = "1.91.0")]
 impl<K, V, R, F, A: Allocator + Clone> Iterator for ExtractIf<'_, K, V, R, F, A>
 where
     K: PartialOrd,
@@ -2063,7 +2007,6 @@ impl<'a, K, V, R> ExtractIfInner<'a, K, V, R> {
     }
 }
 
-#[stable(feature = "btree_extract_if", since = "1.91.0")]
 impl<K, V, R, F> FusedIterator for ExtractIf<'_, K, V, R, F>
 where
     K: PartialOrd,
@@ -2072,7 +2015,6 @@ where
 {
 }
 
-#[stable(feature = "btree_range", since = "1.17.0")]
 impl<'a, K, V> Iterator for Range<'a, K, V> {
     type Item = (&'a K, &'a V);
 
@@ -2099,7 +2041,6 @@ impl<'a, K, V> Iterator for Range<'a, K, V> {
     }
 }
 
-#[stable(feature = "default_iters", since = "1.70.0")]
 impl<K, V> Default for Range<'_, K, V> {
     /// Creates an empty `btree_map::Range`.
     ///
@@ -2113,7 +2054,6 @@ impl<K, V> Default for Range<'_, K, V> {
     }
 }
 
-#[stable(feature = "default_iters_sequel", since = "1.82.0")]
 impl<K, V> Default for RangeMut<'_, K, V> {
     /// Creates an empty `btree_map::RangeMut`.
     ///
@@ -2127,7 +2067,6 @@ impl<K, V> Default for RangeMut<'_, K, V> {
     }
 }
 
-#[stable(feature = "map_values_mut", since = "1.10.0")]
 impl<'a, K, V> Iterator for ValuesMut<'a, K, V> {
     type Item = &'a mut V;
 
@@ -2144,24 +2083,20 @@ impl<'a, K, V> Iterator for ValuesMut<'a, K, V> {
     }
 }
 
-#[stable(feature = "map_values_mut", since = "1.10.0")]
 impl<'a, K, V> DoubleEndedIterator for ValuesMut<'a, K, V> {
     fn next_back(&mut self) -> Option<&'a mut V> {
         self.inner.next_back().map(|(_, v)| v)
     }
 }
 
-#[stable(feature = "map_values_mut", since = "1.10.0")]
 impl<K, V> ExactSizeIterator for ValuesMut<'_, K, V> {
     fn len(&self) -> usize {
         self.inner.len()
     }
 }
 
-#[stable(feature = "fused", since = "1.26.0")]
 impl<K, V> FusedIterator for ValuesMut<'_, K, V> {}
 
-#[stable(feature = "default_iters_sequel", since = "1.82.0")]
 impl<K, V> Default for ValuesMut<'_, K, V> {
     /// Creates an empty `btree_map::ValuesMut`.
     ///
@@ -2175,7 +2110,6 @@ impl<K, V> Default for ValuesMut<'_, K, V> {
     }
 }
 
-#[stable(feature = "map_into_keys_values", since = "1.54.0")]
 impl<K, V, A: Allocator + Clone> Iterator for IntoKeys<K, V, A> {
     type Item = K;
 
@@ -2206,24 +2140,20 @@ impl<K, V, A: Allocator + Clone> Iterator for IntoKeys<K, V, A> {
     }
 }
 
-#[stable(feature = "map_into_keys_values", since = "1.54.0")]
 impl<K, V, A: Allocator + Clone> DoubleEndedIterator for IntoKeys<K, V, A> {
     fn next_back(&mut self) -> Option<K> {
         self.inner.next_back().map(|(k, _)| k)
     }
 }
 
-#[stable(feature = "map_into_keys_values", since = "1.54.0")]
 impl<K, V, A: Allocator + Clone> ExactSizeIterator for IntoKeys<K, V, A> {
     fn len(&self) -> usize {
         self.inner.len()
     }
 }
 
-#[stable(feature = "map_into_keys_values", since = "1.54.0")]
 impl<K, V, A: Allocator + Clone> FusedIterator for IntoKeys<K, V, A> {}
 
-#[stable(feature = "default_iters", since = "1.70.0")]
 impl<K, V, A> Default for IntoKeys<K, V, A>
 where
     A: Allocator + Default + Clone,
@@ -2240,7 +2170,6 @@ where
     }
 }
 
-#[stable(feature = "map_into_keys_values", since = "1.54.0")]
 impl<K, V, A: Allocator + Clone> Iterator for IntoValues<K, V, A> {
     type Item = V;
 
@@ -2257,24 +2186,20 @@ impl<K, V, A: Allocator + Clone> Iterator for IntoValues<K, V, A> {
     }
 }
 
-#[stable(feature = "map_into_keys_values", since = "1.54.0")]
 impl<K, V, A: Allocator + Clone> DoubleEndedIterator for IntoValues<K, V, A> {
     fn next_back(&mut self) -> Option<V> {
         self.inner.next_back().map(|(_, v)| v)
     }
 }
 
-#[stable(feature = "map_into_keys_values", since = "1.54.0")]
 impl<K, V, A: Allocator + Clone> ExactSizeIterator for IntoValues<K, V, A> {
     fn len(&self) -> usize {
         self.inner.len()
     }
 }
 
-#[stable(feature = "map_into_keys_values", since = "1.54.0")]
 impl<K, V, A: Allocator + Clone> FusedIterator for IntoValues<K, V, A> {}
 
-#[stable(feature = "default_iters", since = "1.70.0")]
 impl<K, V, A> Default for IntoValues<K, V, A>
 where
     A: Allocator + Default + Clone,
@@ -2291,24 +2216,20 @@ where
     }
 }
 
-#[stable(feature = "btree_range", since = "1.17.0")]
 impl<'a, K, V> DoubleEndedIterator for Range<'a, K, V> {
     fn next_back(&mut self) -> Option<(&'a K, &'a V)> {
         self.inner.next_back_checked()
     }
 }
 
-#[stable(feature = "fused", since = "1.26.0")]
 impl<K, V> FusedIterator for Range<'_, K, V> {}
 
-#[stable(feature = "btree_range", since = "1.17.0")]
 impl<K, V> Clone for Range<'_, K, V> {
     fn clone(&self) -> Self {
         Range { inner: self.inner.clone() }
     }
 }
 
-#[stable(feature = "btree_range", since = "1.17.0")]
 impl<'a, K, V> Iterator for RangeMut<'a, K, V> {
     type Item = (&'a K, &'a mut V);
 
@@ -2335,17 +2256,14 @@ impl<'a, K, V> Iterator for RangeMut<'a, K, V> {
     }
 }
 
-#[stable(feature = "btree_range", since = "1.17.0")]
 impl<'a, K, V> DoubleEndedIterator for RangeMut<'a, K, V> {
     fn next_back(&mut self) -> Option<(&'a K, &'a mut V)> {
         self.inner.next_back_checked()
     }
 }
 
-#[stable(feature = "fused", since = "1.26.0")]
 impl<K, V> FusedIterator for RangeMut<'_, K, V> {}
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<K: Ord, V> FromIterator<(K, V)> for BTreeMap<K, V> {
     /// Constructs a `BTreeMap<K, V>` from an iterator of key-value pairs.
     ///
@@ -2364,7 +2282,6 @@ impl<K: Ord, V> FromIterator<(K, V)> for BTreeMap<K, V> {
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<K: Ord, V, A: Allocator + Clone> Extend<(K, V)> for BTreeMap<K, V, A> {
     #[inline]
     fn extend<T: IntoIterator<Item = (K, V)>>(&mut self, iter: T) {
@@ -2379,7 +2296,6 @@ impl<K: Ord, V, A: Allocator + Clone> Extend<(K, V)> for BTreeMap<K, V, A> {
     }
 }
 
-#[stable(feature = "extend_ref", since = "1.2.0")]
 impl<'a, K: Ord + Copy, V: Copy, A: Allocator + Clone> Extend<(&'a K, &'a V)>
     for BTreeMap<K, V, A>
 {
@@ -2393,7 +2309,6 @@ impl<'a, K: Ord + Copy, V: Copy, A: Allocator + Clone> Extend<(&'a K, &'a V)>
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<K: Hash, V: Hash, A: Allocator + Clone> Hash for BTreeMap<K, V, A> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         state.write_length_prefix(self.len());
@@ -2403,7 +2318,6 @@ impl<K: Hash, V: Hash, A: Allocator + Clone> Hash for BTreeMap<K, V, A> {
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<K, V> Default for BTreeMap<K, V> {
     /// Creates an empty `BTreeMap`.
     fn default() -> BTreeMap<K, V> {
@@ -2411,17 +2325,14 @@ impl<K, V> Default for BTreeMap<K, V> {
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<K: PartialEq, V: PartialEq, A: Allocator + Clone> PartialEq for BTreeMap<K, V, A> {
     fn eq(&self, other: &BTreeMap<K, V, A>) -> bool {
         self.len() == other.len() && self.iter().zip(other).all(|(a, b)| a == b)
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<K: Eq, V: Eq, A: Allocator + Clone> Eq for BTreeMap<K, V, A> {}
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<K: PartialOrd, V: PartialOrd, A: Allocator + Clone> PartialOrd for BTreeMap<K, V, A> {
     #[inline]
     fn partial_cmp(&self, other: &BTreeMap<K, V, A>) -> Option<Ordering> {
@@ -2429,7 +2340,6 @@ impl<K: PartialOrd, V: PartialOrd, A: Allocator + Clone> PartialOrd for BTreeMap
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<K: Ord, V: Ord, A: Allocator + Clone> Ord for BTreeMap<K, V, A> {
     #[inline]
     fn cmp(&self, other: &BTreeMap<K, V, A>) -> Ordering {
@@ -2437,14 +2347,12 @@ impl<K: Ord, V: Ord, A: Allocator + Clone> Ord for BTreeMap<K, V, A> {
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<K: Debug, V: Debug, A: Allocator + Clone> Debug for BTreeMap<K, V, A> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_map().entries(self.iter()).finish()
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl<K, Q: ?Sized, V, A: Allocator + Clone> Index<&Q> for BTreeMap<K, V, A>
 where
     K: Borrow<Q> + Ord,
@@ -2463,7 +2371,6 @@ where
     }
 }
 
-#[stable(feature = "std_collections_from_array", since = "1.56.0")]
 impl<K: Ord, V, const N: usize> From<[(K, V); N]> for BTreeMap<K, V> {
     /// Converts a `[(K, V); N]` into a `BTreeMap<K, V>`.
     ///
@@ -2508,7 +2415,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// let (first_key, first_value) = map.iter().next().unwrap();
     /// assert_eq!((*first_key, *first_value), (1, "a"));
     /// ```
-    #[stable(feature = "rust1", since = "1.0.0")]
+    
     pub fn iter(&self) -> Iter<'_, K, V> {
         if let Some(root) = &self.root {
             let full_range = root.reborrow().full_range();
@@ -2539,7 +2446,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     ///     }
     /// }
     /// ```
-    #[stable(feature = "rust1", since = "1.0.0")]
+    
     pub fn iter_mut(&mut self) -> IterMut<'_, K, V> {
         if let Some(root) = &mut self.root {
             let full_range = root.borrow_valmut().full_range();
@@ -2564,7 +2471,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// let keys: Vec<_> = a.keys().cloned().collect();
     /// assert_eq!(keys, [1, 2]);
     /// ```
-    #[stable(feature = "rust1", since = "1.0.0")]
+    
     pub fn keys(&self) -> Keys<'_, K, V> {
         Keys { inner: self.iter() }
     }
@@ -2583,7 +2490,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// let values: Vec<&str> = a.values().cloned().collect();
     /// assert_eq!(values, ["hello", "goodbye"]);
     /// ```
-    #[stable(feature = "rust1", since = "1.0.0")]
+    
     pub fn values(&self) -> Values<'_, K, V> {
         Values { inner: self.iter() }
     }
@@ -2607,7 +2514,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// assert_eq!(values, [String::from("hello!"),
     ///                     String::from("goodbye!")]);
     /// ```
-    #[stable(feature = "map_values_mut", since = "1.10.0")]
+    
     pub fn values_mut(&mut self) -> ValuesMut<'_, K, V> {
         ValuesMut { inner: self.iter_mut() }
     }
@@ -2625,13 +2532,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// assert_eq!(a.len(), 1);
     /// ```
     #[must_use]
-    #[stable(feature = "rust1", since = "1.0.0")]
-    #[rustc_const_unstable(
-        feature = "const_btree_len",
-        issue = "71835",
-        implied_by = "const_btree_new"
-    )]
-    #[rustc_confusables("length", "size")]
+    
     pub const fn len(&self) -> usize {
         self.length
     }
@@ -2649,12 +2550,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// assert!(!a.is_empty());
     /// ```
     #[must_use]
-    #[stable(feature = "rust1", since = "1.0.0")]
-    #[rustc_const_unstable(
-        feature = "const_btree_len",
-        issue = "71835",
-        implied_by = "const_btree_new"
-    )]
+    
     pub const fn is_empty(&self) -> bool {
         self.len() == 0
     }
@@ -2698,7 +2594,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// assert_eq!(cursor.peek_prev(), None);
     /// assert_eq!(cursor.peek_next(), Some((&1, &"a")));
     /// ```
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub fn lower_bound<Q: ?Sized>(&self, bound: Bound<&Q>) -> Cursor<'_, K, V>
     where
         K: Borrow<Q> + Ord,
@@ -2751,7 +2647,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// assert_eq!(cursor.peek_prev(), None);
     /// assert_eq!(cursor.peek_next(), Some((&1, &mut "a")));
     /// ```
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub fn lower_bound_mut<Q: ?Sized>(&mut self, bound: Bound<&Q>) -> CursorMut<'_, K, V, A>
     where
         K: Borrow<Q> + Ord,
@@ -2821,7 +2717,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// assert_eq!(cursor.peek_prev(), Some((&4, &"d")));
     /// assert_eq!(cursor.peek_next(), None);
     /// ```
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub fn upper_bound<Q: ?Sized>(&self, bound: Bound<&Q>) -> Cursor<'_, K, V>
     where
         K: Borrow<Q> + Ord,
@@ -2874,7 +2770,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
     /// assert_eq!(cursor.peek_prev(), Some((&4, &mut "d")));
     /// assert_eq!(cursor.peek_next(), None);
     /// ```
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub fn upper_bound_mut<Q: ?Sized>(&mut self, bound: Bound<&Q>) -> CursorMut<'_, K, V, A>
     where
         K: Borrow<Q> + Ord,
@@ -2914,14 +2810,12 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
 /// operate on the two immediately adjacent elements.
 ///
 /// A `Cursor` is created with the [`BTreeMap::lower_bound`] and [`BTreeMap::upper_bound`] methods.
-#[unstable(feature = "btree_cursors", issue = "107540")]
 pub struct Cursor<'a, K: 'a, V: 'a> {
     // If current is None then it means the tree has not been allocated yet.
     current: Option<Handle<NodeRef<marker::Immut<'a>, K, V, marker::Leaf>, marker::Edge>>,
     root: Option<&'a node::Root<K, V>>,
 }
 
-#[unstable(feature = "btree_cursors", issue = "107540")]
 impl<K, V> Clone for Cursor<'_, K, V> {
     fn clone(&self) -> Self {
         let Cursor { current, root } = *self;
@@ -2929,7 +2823,6 @@ impl<K, V> Clone for Cursor<'_, K, V> {
     }
 }
 
-#[unstable(feature = "btree_cursors", issue = "107540")]
 impl<K: Debug, V: Debug> Debug for Cursor<'_, K, V> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("Cursor")
@@ -2948,17 +2841,15 @@ impl<K: Debug, V: Debug> Debug for Cursor<'_, K, V> {
 ///
 /// A `CursorMut` is created with the [`BTreeMap::lower_bound_mut`] and [`BTreeMap::upper_bound_mut`]
 /// methods.
-#[unstable(feature = "btree_cursors", issue = "107540")]
 pub struct CursorMut<
     'a,
     K: 'a,
     V: 'a,
-    #[unstable(feature = "allocator_api", issue = "32838")] A = Global,
+     A = Global,
 > {
     inner: CursorMutKey<'a, K, V, A>,
 }
 
-#[unstable(feature = "btree_cursors", issue = "107540")]
 impl<K: Debug, V: Debug, A> Debug for CursorMut<'_, K, V, A> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("CursorMut")
@@ -2986,12 +2877,11 @@ impl<K: Debug, V: Debug, A> Debug for CursorMut<'_, K, V, A> {
 ///
 /// * The key of the newly inserted element must be unique in the tree.
 /// * All keys in the tree must remain in sorted order.
-#[unstable(feature = "btree_cursors", issue = "107540")]
 pub struct CursorMutKey<
     'a,
     K: 'a,
     V: 'a,
-    #[unstable(feature = "allocator_api", issue = "32838")] A = Global,
+     A = Global,
 > {
     // If current is None then it means the tree has not been allocated yet.
     current: Option<Handle<NodeRef<marker::Mut<'a>, K, V, marker::Leaf>, marker::Edge>>,
@@ -3000,7 +2890,6 @@ pub struct CursorMutKey<
     alloc: &'a mut A,
 }
 
-#[unstable(feature = "btree_cursors", issue = "107540")]
 impl<K: Debug, V: Debug, A> Debug for CursorMutKey<'_, K, V, A> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("CursorMutKey")
@@ -3013,7 +2902,7 @@ impl<'a, K, V> Cursor<'a, K, V> {
     ///
     /// If the cursor is already at the end of the map then `None` is returned
     /// and the cursor is not moved.
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub fn next(&mut self) -> Option<(&'a K, &'a V)> {
         let current = self.current.take()?;
         match current.next_kv() {
@@ -3034,7 +2923,7 @@ impl<'a, K, V> Cursor<'a, K, V> {
     ///
     /// If the cursor is already at the start of the map then `None` is returned
     /// and the cursor is not moved.
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub fn prev(&mut self) -> Option<(&'a K, &'a V)> {
         let current = self.current.take()?;
         match current.next_back_kv() {
@@ -3054,7 +2943,7 @@ impl<'a, K, V> Cursor<'a, K, V> {
     /// moving the cursor.
     ///
     /// If the cursor is at the end of the map then `None` is returned.
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub fn peek_next(&self) -> Option<(&'a K, &'a V)> {
         self.clone().next()
     }
@@ -3063,7 +2952,7 @@ impl<'a, K, V> Cursor<'a, K, V> {
     /// without moving the cursor.
     ///
     /// If the cursor is at the start of the map then `None` is returned.
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub fn peek_prev(&self) -> Option<(&'a K, &'a V)> {
         self.clone().prev()
     }
@@ -3075,7 +2964,7 @@ impl<'a, K, V, A> CursorMut<'a, K, V, A> {
     ///
     /// If the cursor is already at the end of the map then `None` is returned
     /// and the cursor is not moved.
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub fn next(&mut self) -> Option<(&K, &mut V)> {
         let (k, v) = self.inner.next()?;
         Some((&*k, v))
@@ -3086,7 +2975,7 @@ impl<'a, K, V, A> CursorMut<'a, K, V, A> {
     ///
     /// If the cursor is already at the start of the map then `None` is returned
     /// and the cursor is not moved.
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub fn prev(&mut self) -> Option<(&K, &mut V)> {
         let (k, v) = self.inner.prev()?;
         Some((&*k, v))
@@ -3096,7 +2985,7 @@ impl<'a, K, V, A> CursorMut<'a, K, V, A> {
     /// moving the cursor.
     ///
     /// If the cursor is at the end of the map then `None` is returned.
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub fn peek_next(&mut self) -> Option<(&K, &mut V)> {
         let (k, v) = self.inner.peek_next()?;
         Some((&*k, v))
@@ -3106,7 +2995,7 @@ impl<'a, K, V, A> CursorMut<'a, K, V, A> {
     /// without moving the cursor.
     ///
     /// If the cursor is at the start of the map then `None` is returned.
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub fn peek_prev(&mut self) -> Option<(&K, &mut V)> {
         let (k, v) = self.inner.peek_prev()?;
         Some((&*k, v))
@@ -3118,7 +3007,7 @@ impl<'a, K, V, A> CursorMut<'a, K, V, A> {
     /// The lifetime of the returned `Cursor` is bound to that of the
     /// `CursorMut`, which means it cannot outlive the `CursorMut` and that the
     /// `CursorMut` is frozen for the lifetime of the `Cursor`.
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub fn as_cursor(&self) -> Cursor<'_, K, V> {
         self.inner.as_cursor()
     }
@@ -3133,7 +3022,7 @@ impl<'a, K, V, A> CursorMut<'a, K, V, A> {
     ///
     /// * The key of the newly inserted element must be unique in the tree.
     /// * All keys in the tree must remain in sorted order.
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub unsafe fn with_mutable_key(self) -> CursorMutKey<'a, K, V, A> {
         self.inner
     }
@@ -3145,7 +3034,7 @@ impl<'a, K, V, A> CursorMutKey<'a, K, V, A> {
     ///
     /// If the cursor is already at the end of the map then `None` is returned
     /// and the cursor is not moved.
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub fn next(&mut self) -> Option<(&mut K, &mut V)> {
         let current = self.current.take()?;
         match current.next_kv() {
@@ -3170,7 +3059,7 @@ impl<'a, K, V, A> CursorMutKey<'a, K, V, A> {
     ///
     /// If the cursor is already at the start of the map then `None` is returned
     /// and the cursor is not moved.
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub fn prev(&mut self) -> Option<(&mut K, &mut V)> {
         let current = self.current.take()?;
         match current.next_back_kv() {
@@ -3194,7 +3083,7 @@ impl<'a, K, V, A> CursorMutKey<'a, K, V, A> {
     /// moving the cursor.
     ///
     /// If the cursor is at the end of the map then `None` is returned.
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub fn peek_next(&mut self) -> Option<(&mut K, &mut V)> {
         let current = self.current.as_mut()?;
         // SAFETY: We're not using this to mutate the tree.
@@ -3206,7 +3095,7 @@ impl<'a, K, V, A> CursorMutKey<'a, K, V, A> {
     /// without moving the cursor.
     ///
     /// If the cursor is at the start of the map then `None` is returned.
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub fn peek_prev(&mut self) -> Option<(&mut K, &mut V)> {
         let current = self.current.as_mut()?;
         // SAFETY: We're not using this to mutate the tree.
@@ -3220,7 +3109,7 @@ impl<'a, K, V, A> CursorMutKey<'a, K, V, A> {
     /// The lifetime of the returned `Cursor` is bound to that of the
     /// `CursorMutKey`, which means it cannot outlive the `CursorMutKey` and that the
     /// `CursorMutKey` is frozen for the lifetime of the `Cursor`.
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub fn as_cursor(&self) -> Cursor<'_, K, V> {
         Cursor {
             // SAFETY: The tree is immutable while the cursor exists.
@@ -3245,7 +3134,7 @@ impl<'a, K: Ord, V, A: Allocator + Clone> CursorMutKey<'a, K, V, A> {
     ///
     /// * The key of the newly inserted element must be unique in the tree.
     /// * All keys in the tree must remain in sorted order.
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub unsafe fn insert_after_unchecked(&mut self, key: K, value: V) {
         let edge = match self.current.take() {
             None => {
@@ -3288,7 +3177,7 @@ impl<'a, K: Ord, V, A: Allocator + Clone> CursorMutKey<'a, K, V, A> {
     ///
     /// * The key of the newly inserted element must be unique in the tree.
     /// * All keys in the tree must remain in sorted order.
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub unsafe fn insert_before_unchecked(&mut self, key: K, value: V) {
         let edge = match self.current.take() {
             None => {
@@ -3331,7 +3220,7 @@ impl<'a, K: Ord, V, A: Allocator + Clone> CursorMutKey<'a, K, V, A> {
     /// (if any), or if it not less than the key after the cursor (if any),
     /// then an [`UnorderedKeyError`] is returned since this would
     /// invalidate the [`Ord`] invariant between the keys of the map.
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub fn insert_after(&mut self, key: K, value: V) -> Result<(), UnorderedKeyError> {
         if let Some((prev, _)) = self.peek_prev() {
             if &key <= prev {
@@ -3359,7 +3248,7 @@ impl<'a, K: Ord, V, A: Allocator + Clone> CursorMutKey<'a, K, V, A> {
     /// (if any), or if it not less than the key after the cursor (if any),
     /// then an [`UnorderedKeyError`] is returned since this would
     /// invalidate the [`Ord`] invariant between the keys of the map.
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub fn insert_before(&mut self, key: K, value: V) -> Result<(), UnorderedKeyError> {
         if let Some((prev, _)) = self.peek_prev() {
             if &key <= prev {
@@ -3381,7 +3270,7 @@ impl<'a, K: Ord, V, A: Allocator + Clone> CursorMutKey<'a, K, V, A> {
     ///
     /// The element that was removed is returned. The cursor position is
     /// unchanged (before the removed element).
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub fn remove_next(&mut self) -> Option<(K, V)> {
         let current = self.current.take()?;
         if current.reborrow().next_kv().is_err() {
@@ -3410,7 +3299,7 @@ impl<'a, K: Ord, V, A: Allocator + Clone> CursorMutKey<'a, K, V, A> {
     ///
     /// The element that was removed is returned. The cursor position is
     /// unchanged (after the removed element).
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub fn remove_prev(&mut self) -> Option<(K, V)> {
         let current = self.current.take()?;
         if current.reborrow().next_back_kv().is_err() {
@@ -3450,7 +3339,7 @@ impl<'a, K: Ord, V, A: Allocator + Clone> CursorMut<'a, K, V, A> {
     ///
     /// * The key of the newly inserted element must be unique in the tree.
     /// * All keys in the tree must remain in sorted order.
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub unsafe fn insert_after_unchecked(&mut self, key: K, value: V) {
         unsafe { self.inner.insert_after_unchecked(key, value) }
     }
@@ -3468,7 +3357,7 @@ impl<'a, K: Ord, V, A: Allocator + Clone> CursorMut<'a, K, V, A> {
     ///
     /// * The key of the newly inserted element must be unique in the tree.
     /// * All keys in the tree must remain in sorted order.
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub unsafe fn insert_before_unchecked(&mut self, key: K, value: V) {
         unsafe { self.inner.insert_before_unchecked(key, value) }
     }
@@ -3483,7 +3372,7 @@ impl<'a, K: Ord, V, A: Allocator + Clone> CursorMut<'a, K, V, A> {
     /// (if any), or if it not less than the key after the cursor (if any),
     /// then an [`UnorderedKeyError`] is returned since this would
     /// invalidate the [`Ord`] invariant between the keys of the map.
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub fn insert_after(&mut self, key: K, value: V) -> Result<(), UnorderedKeyError> {
         self.inner.insert_after(key, value)
     }
@@ -3498,7 +3387,7 @@ impl<'a, K: Ord, V, A: Allocator + Clone> CursorMut<'a, K, V, A> {
     /// (if any), or if it not less than the key after the cursor (if any),
     /// then an [`UnorderedKeyError`] is returned since this would
     /// invalidate the [`Ord`] invariant between the keys of the map.
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub fn insert_before(&mut self, key: K, value: V) -> Result<(), UnorderedKeyError> {
         self.inner.insert_before(key, value)
     }
@@ -3507,7 +3396,7 @@ impl<'a, K: Ord, V, A: Allocator + Clone> CursorMut<'a, K, V, A> {
     ///
     /// The element that was removed is returned. The cursor position is
     /// unchanged (before the removed element).
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub fn remove_next(&mut self) -> Option<(K, V)> {
         self.inner.remove_next()
     }
@@ -3516,7 +3405,7 @@ impl<'a, K: Ord, V, A: Allocator + Clone> CursorMut<'a, K, V, A> {
     ///
     /// The element that was removed is returned. The cursor position is
     /// unchanged (after the removed element).
-    #[unstable(feature = "btree_cursors", issue = "107540")]
+    
     pub fn remove_prev(&mut self) -> Option<(K, V)> {
         self.inner.remove_prev()
     }
@@ -3526,17 +3415,14 @@ impl<'a, K: Ord, V, A: Allocator + Clone> CursorMut<'a, K, V, A> {
 /// [`CursorMut::insert_after`] if the key being inserted is not properly
 /// ordered with regards to adjacent keys.
 #[derive(Clone, PartialEq, Eq, Debug)]
-#[unstable(feature = "btree_cursors", issue = "107540")]
 pub struct UnorderedKeyError {}
 
-#[unstable(feature = "btree_cursors", issue = "107540")]
 impl fmt::Display for UnorderedKeyError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "key is not properly ordered relative to neighbors")
     }
 }
 
-#[unstable(feature = "btree_cursors", issue = "107540")]
 impl Error for UnorderedKeyError {}
 
 #[cfg(test)]

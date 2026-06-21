@@ -6,10 +6,10 @@ use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering::SeqCst;
 
 use super::*;
-use crate::boxed::Box;
-use crate::fmt::Debug;
-use crate::rc::Rc;
-use crate::string::{String, ToString};
+use std::boxed::Box;
+use core::fmt::Debug;
+use std::rc::Rc;
+use std::string::{String, ToString};
 use crate::testing::crash_test::{CrashTestDummy, Panic};
 use crate::testing::ord_chaos::{Cyclic3, Governed, Governor};
 use crate::testing::rng::DeterministicRng;

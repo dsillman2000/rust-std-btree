@@ -83,6 +83,7 @@ impl<BorrowType: marker::BorrowType, K, V> NodeRef<BorrowType, K, V, marker::Lea
     pub(super) fn search_tree_for_bifurcation<'r, Q: ?Sized, R>(
         mut self,
         range: &'r R,
+        is_set: bool,
     ) -> Result<
         (
             NodeRef<BorrowType, K, V, marker::LeafOrInternal>,
@@ -98,8 +99,6 @@ impl<BorrowType: marker::BorrowType, K, V> NodeRef<BorrowType, K, V, marker::Lea
         K: Borrow<Q>,
         R: RangeBounds<Q>,
     {
-        // Determine if map or set is being searched
-        let is_set = <V as super::set_val::IsSetVal>::is_set_val();
 
         // Inlining these variables should be avoided. We assume the bounds reported by `range`
         // remain the same, but an adversarial implementation could change between calls (#81138).
