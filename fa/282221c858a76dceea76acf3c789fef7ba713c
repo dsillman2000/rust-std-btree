@@ -1,0 +1,28 @@
+README.md
+  s_8a2953d1ccadf1::t_b6417cac4be0fc 13-52,54,58,60,64,72,74,79-80
+  s_8a2953d1ccadf1::t_26a19696838033 3,5-12
+  s_8a2953d1ccadf1::t_8aff8fa6aedb21 53,55-57,59,61-63,65-71,73,75-76,81,84
+AGENTS.md
+  s_8a2953d1ccadf1::t_4f0e81aef5ae4d 12-13,16-68
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.9",
+  "base_commit_sha": "fa282221c858a76dceea76acf3c789fef7ba713c",
+  "prompts": {},
+  "humans": {
+    "h_4cc74772b10fd4": {
+      "author": "dsillman2000 <dsillman2000@yahoo.com>"
+    }
+  },
+  "sessions": {
+    "s_8a2953d1ccadf1": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_114db0302ffeZNsKhDrgTGWyPM",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "dsillman2000 <dsillman2000@yahoo.com>"
+    }
+  }
+}
