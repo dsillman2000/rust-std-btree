@@ -1,8 +1,11 @@
 # AGENTS.md
 
-This project extracts the `library/alloc/src/collections/btree` subtree from
-`rust-lang/rust` into `src/btree/`. Internal crate paths like
-`crate::collections::btree::*` are rewritten to `crate::btree::*`.
+**This project does not contain original code.** All source code in `src/btree/`
+is extracted verbatim from the official Rust standard library
+([rust-lang/rust](https://github.com/rust-lang/rust),
+`library/alloc/src/collections/btree`). Internal crate paths like
+`crate::collections::btree::*` are rewritten to `crate::btree::*` so the crate
+compiles standalone.
 
 - **Pull a new version:** `make pull-btree TAG=<version>`
 - **Module root:** `src/btree/mod.rs` — expose as `pub mod btree;` in your crate root.

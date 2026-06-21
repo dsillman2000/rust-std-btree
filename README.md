@@ -1,6 +1,10 @@
 # rust-std-btree
 
-The BTree / BTreeMap implementation extracted from the Rust standard library's `alloc` crate.
+This repository is a **verbatim extraction** of the official Rust standard library
+BTree implementation. **I do not own any of the contents.** All code in
+`src/btree/` is sourced from the
+[rust-lang/rust](https://github.com/rust-lang/rust) repository and is licensed
+under the MIT license (or Apache 2.0 at your option), the same as Rust itself.
 
 Pull a specific version:
 
