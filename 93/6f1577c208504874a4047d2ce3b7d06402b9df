@@ -1,0 +1,65 @@
+src/btree/map/entry.rs
+  s_f0966c50abab0c::t_5fbc5bb4433157 132
+  s_f0966c50abab0c::t_8f695a553008ae 10-11
+  s_f0966c50abab0c::t_a88f7ac856bece 22,25-26,29-30,48,74,99,150,173,201,222,250,277,290,324,343,364-365,387,436,465,486,517,544,566-567,589-590
+src/btree/map/tests.rs
+  s_f0966c50abab0c::t_1895a3b88bc0f9 9-10
+  s_f0966c50abab0c::t_24fce66d9c43c6 11
+  s_f0966c50abab0c::t_d12298448fd306 12
+src/btree/navigate.rs
+  s_f0966c50abab0c::t_dee1e267b4ad6f 267,274
+  s_f0966c50abab0c::t_ee399fd8abd8a4 317,324
+  s_f0966c50abab0c::t_dab2e42d778c33 8
+  s_f0966c50abab0c::t_707da9266225d7 343,349
+src/btree/node.rs
+  s_f0966c50abab0c::t_1895a3b88bc0f9 41
+  s_f0966c50abab0c::t_dab2e42d778c33 40
+src/btree/set.rs
+  s_f0966c50abab0c::t_85bb6b5695a84c 15
+  s_f0966c50abab0c::t_99a89b1deed366 13-14
+  s_f0966c50abab0c::t_3810b38b4d36d1 381
+  s_f0966c50abab0c::t_a88f7ac856bece 78,145,173,243,321,342,374,404,465,496,547,567,590,615,642,668,748,774-775,801-802,826,850,882-883,906-907,932,961,1007,1036,1061,1085,1122,1160,1200,1226,1248,1287,1330,1373,1416,1511,2056,2091,2108,2118,2126,2134,2146,2156,2164,2172,2183,2198,2210,2220,2228,2236,2247,2267,2285,2300,2315,2324,2333,2353,2371,2386,2401,2410,2419
+src/btree/search.rs
+  s_f0966c50abab0c::t_38fa5d8af23acf 86
+src/btree/map.rs
+  s_f0966c50abab0c::t_1895a3b88bc0f9 199
+  s_f0966c50abab0c::t_15deccd50c5ec4 1237-1242
+  s_f0966c50abab0c::t_a0e83779c04cb0 572
+  s_f0966c50abab0c::t_c4d78b289c6cef 20-21
+  s_f0966c50abab0c::t_6b082cfd206711 1290
+  s_f0966c50abab0c::t_85bb6b5695a84c 22
+  s_f0966c50abab0c::t_d47b685327b9b8 1243-1250
+  s_f0966c50abab0c::t_a88f7ac856bece 189,433,532,553,617,638,664,686,752,779,807,841,862,890,924,947,1010,1043,1070-1071,1096,1134,1174,1229,1282,1314,1374,1436,1494,1516,1901,2418,2449,2474,2493,2517,2535,2553,2597,2650,2720,2773,2848,2884,2905,2926,2946,2955,2967,2978,2988,2998,3010,3025,3037,3062,3086,3098,3112,3137,3180,3223,3251,3273,3302,3342,3360,3375,3390,3399,3408
+  s_f0966c50abab0c::t_74a47de205212d 973
+src/btree/node/tests.rs
+  s_f0966c50abab0c::t_1895a3b88bc0f9 4
+  s_f0966c50abab0c::t_15453f235ce590 3
+  s_f0966c50abab0c::t_d12298448fd306 5
+src/lib.rs
+  s_f0966c50abab0c::t_888fa14fa27f54 1-7
+  s_f0966c50abab0c::t_3bfa3de938f20e 8
+src/btree/set/entry.rs
+  s_f0966c50abab0c::t_a88f7ac856bece 45,63,82,134,174,201,230,255,283,308,329,351,374
+  s_f0966c50abab0c::t_b53bd8d4271252 6-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.9",
+  "base_commit_sha": "936f1577c208504874a4047d2ce3b7d06402b9df",
+  "prompts": {},
+  "humans": {
+    "h_4cc74772b10fd4": {
+      "author": "dsillman2000 <dsillman2000@yahoo.com>"
+    }
+  },
+  "sessions": {
+    "s_f0966c50abab0c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_1185125ebffeQcm2TrMQFFHE0N",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "dsillman2000 <dsillman2000@yahoo.com>"
+    }
+  }
+}
