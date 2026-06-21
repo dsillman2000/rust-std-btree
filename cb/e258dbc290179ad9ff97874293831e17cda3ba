@@ -1,0 +1,28 @@
+rust-toolchain.toml
+  s_f0966c50abab0c::t_c5782934b5873b 1-2
+Makefile
+  s_f0966c50abab0c::t_2cdb1e852299c7 3,11-12
+.gitignore
+  h_4cc74772b10fd4 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.9",
+  "base_commit_sha": "cbe258dbc290179ad9ff97874293831e17cda3ba",
+  "prompts": {},
+  "humans": {
+    "h_4cc74772b10fd4": {
+      "author": "dsillman2000 <dsillman2000@yahoo.com>"
+    }
+  },
+  "sessions": {
+    "s_f0966c50abab0c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_1185125ebffeQcm2TrMQFFHE0N",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "dsillman2000 <dsillman2000@yahoo.com>"
+    }
+  }
+}
