@@ -1,0 +1,40 @@
+src/btree/map/tests.rs
+  s_f0966c50abab0c::t_e36f33e3e7e0c4 1
+src/btree/map.rs
+  s_f0966c50abab0c::t_9eae7019675888 1033
+src/testing/macros.rs
+  s_f0966c50abab0c::t_1da5f1c703c1b8 1-37
+src/testing/crash_test.rs
+  s_f0966c50abab0c::t_4b575098c27ee4 1-122
+src/lib.rs
+  s_f0966c50abab0c::t_c67dd5f205b007 10-12
+  s_f0966c50abab0c::t_79619c7b15eac1 4
+  s_f0966c50abab0c::t_cb9fcb2e60bdcf 7
+src/testing/rng.rs
+  s_f0966c50abab0c::t_1c27675ffade40 1-28
+src/testing/ord_chaos.rs
+  s_f0966c50abab0c::t_a633ba79a7c17e 1-81
+src/testing/mod.rs
+  s_f0966c50abab0c::t_2bece353e0efe9 1-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.9",
+  "base_commit_sha": "cb6c6982e2077c198b805147740e958e51e7afb7",
+  "prompts": {},
+  "humans": {
+    "h_4cc74772b10fd4": {
+      "author": "dsillman2000 <dsillman2000@yahoo.com>"
+    }
+  },
+  "sessions": {
+    "s_f0966c50abab0c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_1185125ebffeQcm2TrMQFFHE0N",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "dsillman2000 <dsillman2000@yahoo.com>"
+    }
+  }
+}
